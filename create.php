@@ -1,17 +1,18 @@
 <?php
 
-require_once('_db_connect.php');
+require_once('_config.php');
 
-if (empty($_POST['features']) || empty($_POST['time']) || empty($_POST['camera'])) {
+if (empty($_POST['features'])) {
     abort('Lost parameters');
 }
 
 /** @var PDO $conn */
-$statment = $conn->prepare("INSERT INTO faces (`features`, `time`, `camera`) VALUES (:features, :time, :camera)");
+$statment = $conn->prepare("INSERT INTO faces (`features`, `start_time`, `end_time`, `device`) VALUES (:features, :start_time, :end_time, :device)");
 $result = $statment->execute([
     'features' => $_POST['features'],
-    'time' => $_POST['time'],
-    'camera' => $_POST['camera']
+    'start_time' => $_POST['start_time'] ?? 0,
+    'end_time' => $_POST['end_time'] ?? 0,
+    'device' => $_POST['device'] ?? null
 ]);
 
 if ($result) {

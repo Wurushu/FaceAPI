@@ -1,12 +1,13 @@
 <?php
 
-header('Content-Type:text/json');
+// Fill in Database information here.
 $dbms = 'mysql';
 $host = 'localhost';
 $dbname = 'FaceDB';
 $user = 'root';
 $password = '';
 
+header('Content-Type:text/json');
 try {
     $conn = new PDO("mysql:host={$host};dbname={$dbname}", $user, $password);
 } catch (PDOException $e) {

@@ -1,0 +1,1 @@
+python track.py --source walk.mp4 --yolo_weights yolov5/weights/crowdhuman_yolov5m.pt --classes 0 --save-vid

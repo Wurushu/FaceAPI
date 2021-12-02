@@ -15,3 +15,16 @@ $(document).on('change', 'input[name="dateLimit"]', function () {
         $('#blockDatePick').fadeOut();
     }
 });
+
+$(document).on('click', '.video-link', function (e) {
+    window.open($(this).attr('href'), 'showVideo', "width=800,height=450");
+    e.preventDefault();
+});
+
+$(document).on('click', '#btn_search_face', function (e) {
+    $('.search-loading').fadeIn();
+    e.preventDefault();
+    setTimeout(() => {
+        $('#formSearch').submit();
+    }, 2000);
+});

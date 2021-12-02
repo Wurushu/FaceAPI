@@ -13,35 +13,34 @@
     <main class="py-4">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-md-10">
-                    <table class="table">
-                        <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">First</th>
-                            <th scope="col">Last</th>
-                            <th scope="col">Handle</th>
-                        </tr>
-                        </thead>
+                <div class="col-md-6">
+                    <table class="table table-bordered table-hover mt-5">
                         <tbody>
-                        <tr>
-                            <th scope="row">1</th>
-                            <td>Mark</td>
-                            <td>Otto</td>
-                            <td>@mdo</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">2</th>
-                            <td>Jacob</td>
-                            <td>Thornton</td>
-                            <td>@fat</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">3</th>
-                            <td>Larry</td>
-                            <td>the Bird</td>
-                            <td>@twitter</td>
-                        </tr>
+                        <?php
+
+                        $dbms = 'mysql';
+                        $host = 'localhost';
+                        $dbname = 'FaceDB';
+                        $user = 'root';
+                        $password = '';
+
+                        $conn = new PDO("mysql:host={$host};dbname={$dbname}", $user, $password);
+
+                        $statement = $conn->query("SELECT `device` FROM `faces` GROUP BY `device`");
+
+                        // TODO: Video url?
+                        foreach ($statement as $row) {
+
+                            ?>
+                            <tr>
+                                <td>
+                                    <a class="video-link" href="<?php echo '../' . 'walk.mp4'; ?>"><?php echo $row['device']; ?></a>
+                                </td>
+                            </tr>
+                            <?php
+                        }
+
+                        ?>
                         </tbody>
                     </table>
 

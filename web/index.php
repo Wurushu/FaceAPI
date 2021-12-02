@@ -12,7 +12,8 @@ if (!empty($_FILES['face'])) {
         echo '<script>alert("錯誤：' . $fileFace['error'] . '");</script>';
     }
 
-    //shell_exec('python input.py --image ' . 'web/upload/' . $fileFace['name']);
+    $output = shell_exec('python input.py --image ' . 'web/upload/' . $fileFace['name']);
+    // TODO: Output convert to result.
     $resultVideo = '../walk.mp4';
     $timelines = [13, 31, 65];
 }
@@ -47,7 +48,7 @@ if (!empty($_FILES['face'])) {
 
                             <div class="card-body">
                                 <div class="col-md-10 offset-md-1">
-                                    <video id="video_search_result" class="w-100" src="assets/video/example.mp4"
+                                    <video id="video_search_result" class="w-100" src="<?php echo $resultVideo; ?>"
                                            controls></video>
                                 </div>
                                 <div class="col-md-10 offset-md-1 mt-3">
@@ -78,7 +79,7 @@ if (!empty($_FILES['face'])) {
 
                             <div class="card-body">
                                 <div class="col-md-12">
-                                    <video class="w-100" src="assets/video/example.mp4" controls></video>
+                                    <video class="w-100" src="../walk.mp4" controls></video>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +91,7 @@ if (!empty($_FILES['face'])) {
                         <div class="card-header">Face Searching</div>
 
                         <div class="card-body">
-                            <form method="post" enctype="multipart/form-data">
+                            <form id="formSearch" method="post" enctype="multipart/form-data">
                                 <div class="col-md-12">
                                     <div class="form-check text-center my-2" style="display: none">
                                         <input class="form-check-input" type="radio" name="dateLimit"

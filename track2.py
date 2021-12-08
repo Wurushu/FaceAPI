@@ -42,16 +42,20 @@ def store_to_database(average_encoded_dict,id_time,source):
     )
     
     mycursor = mydb.cursor()
+    mycursor.execute('SELECT MAX(id) FROM faces;')
+    max = mycursor.fetchall()
+    max = max[0][0] #get the max id
 
     #新增資料
     sql = "insert into faces (id, features, start_time, end_time, device) values (%s, %s, %s, %s, %s)"
     vals = []
 
+
     for key,value in average_encoded_dict.items():
         feature = np.array2string(value, formatter={'float_kind':lambda x: "%.18f" % x}).replace('\n','').replace(' ',',')
         feature = feature[1:]
         feature = feature[:-1]
-        val = (int(key),feature,id_time[key][0],id_time[key][1],source)
+        val = (max + int(key),feature,id_time[key][0],id_time[key][1],source)
         vals.append(val)
     mycursor.executemany(sql, vals)
     print(mycursor.rowcount, "record inserted.")
@@ -134,8 +138,6 @@ def detect(opt):
     id_time = {}
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         seconds = frame_idx / vid_cap.get(cv2.CAP_PROP_FPS)
-        if(seconds > 33): #seconds 33
-            break
         t1 = time_sync()
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32

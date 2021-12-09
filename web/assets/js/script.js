@@ -1,5 +1,5 @@
 $(document).on('click', '.time-link > a', function (e) {
-    var video = $('#video_search_result').get(0);
+    var video = $(this).parents('.card').find('video').get(0);
     video.currentTime = parseInt($(this).data('seconds'));
     video.play();
 });

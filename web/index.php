@@ -1,22 +1,32 @@
 <?php
+$results_convert = [];
+
 if (!empty($_FILES['face'])) {
     $fileFace = $_FILES['face'];
+    $imageFolder = '../image/';
 
     if ($fileFace['error'] === UPLOAD_ERR_OK) {
-        if (file_exists('upload/' . $fileFace['name'])) {
-            rename('upload/' . $fileFace['name'], 'upload/' . bin2hex(random_bytes(10)) . '.jpg');
+        if (file_exists($imageFolder . $fileFace['name'])) {
+            rename($imageFolder . $fileFace['name'], $imageFolder . bin2hex(random_bytes(10)) . '.jpg');
         }
 
-        move_uploaded_file($fileFace['tmp_name'], 'upload/' . $fileFace['name']);
+        move_uploaded_file($fileFace['tmp_name'], $imageFolder . $fileFace['name']);
     } else {
         echo '<script>alert("錯誤：' . $fileFace['error'] . '");</script>';
     }
 
-    $output = shell_exec('python input.py --image ' . 'web/upload/' . $fileFace['name']);
-    // TODO: Output convert to result.
-    $resultVideo = '../walk.mp4';
-    $timelines = [13, 31, 65];
+    $pythonCmd = "conda run -n face-env python ../input.py --image " . $imageFolder . $fileFace['name'];
+    exec($pythonCmd, $output);
+    $results = json_decode($output[0]);
+    foreach ($results as $result) {
+        if (array_key_exists($result[2], $results_convert)) {
+            $results_convert[$result[2]][] = floor($result[0]);
+        } else {
+            $results_convert[$result[2]] = [floor($result[0])];
+        }
+    }
 }
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -41,30 +51,28 @@ if (!empty($_FILES['face'])) {
                     </div>
 
                     <?php
-                    if (!empty($resultVideo)) {
+                    $i = 0;
+                    foreach ($results_convert as $key => $result_convert) {
+                        $i++;
+                        sort($result_convert);
                         ?>
                         <div class="card card-video-result my-3">
                             <div class="card-header">Search Result</div>
 
                             <div class="card-body">
                                 <div class="col-md-10 offset-md-1">
-                                    <video id="video_search_result" class="w-100" src="<?php echo $resultVideo; ?>"
+                                    <video id="video_<?php echo $i; ?>" class="w-100" src="../<?php echo $key; ?>"
                                            controls></video>
                                 </div>
                                 <div class="col-md-10 offset-md-1 mt-3">
                                     <p>Face appear in:</p>
                                     <p class="time-link">
                                         <?php
-                                        if (!empty($timelines)) {
-                                            foreach ($timelines as $timeline) {
-                                                $timeline_seconds = ($timeline % 60);
-
-                                                $timeline_ms = floor($timeline / 60) . ':' . sprintf('%02d',$timeline % 60);
-                                                ?>
-                                                <a href="#"
-                                                   data-seconds="<?php echo $timeline; ?>"><?php echo $timeline_ms; ?></a>
-                                                <?php
-                                            }
+                                        foreach ($result_convert as $timeline) {
+                                            ?>
+                                            <a href="#video_<?php echo $i; ?>"
+                                               data-seconds="<?php echo $timeline; ?>"><?php echo $timeline . 's'; ?></a>
+                                            <?php
                                         }
                                         ?>
                                     </p>
@@ -72,14 +80,16 @@ if (!empty($_FILES['face'])) {
                             </div>
                         </div>
                         <?php
-                    } else {
+                    }
+
+                    if (count($results_convert) < 1) {
                         ?>
                         <div class="card card-video-example my-3">
                             <div class="card-header">Video Example</div>
 
                             <div class="card-body">
                                 <div class="col-md-12">
-                                    <video class="w-100" src="../walk.mp4" controls></video>
+                                    <video class="w-100" src="../video/walk1.mp4" controls></video>
                                 </div>
                             </div>
                         </div>

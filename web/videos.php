@@ -28,13 +28,12 @@
 
                         $statement = $conn->query("SELECT `device` FROM `faces` GROUP BY `device`");
 
-                        // TODO: Video url?
                         foreach ($statement as $row) {
 
                             ?>
                             <tr>
                                 <td>
-                                    <a class="video-link" href="<?php echo '../' . 'walk.mp4'; ?>"><?php echo $row['device']; ?></a>
+                                    <a class="video-link" href="<?php echo '../' . $row['device']; ?>"><?php echo $row['device']; ?></a>
                                 </td>
                             </tr>
                             <?php

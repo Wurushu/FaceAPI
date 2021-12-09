@@ -2,6 +2,7 @@ import face_recognition
 import mysql.connector
 import argparse
 import numpy as np
+import json
 
 def face_distance(face_encodings, face_to_compare):
     if len(face_encodings) == 0:
@@ -58,5 +59,5 @@ if __name__ == '__main__':
     opt = parser.parse_args()
     face_encoding = encode(opt)
     data = find_database(face_encoding)
-    print(data)
+    print(json.dumps(data))
     #return data

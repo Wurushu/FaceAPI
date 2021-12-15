@@ -1,2 +1,2 @@
 <?php
-    header('location: web/');
+    header('location: web2/');

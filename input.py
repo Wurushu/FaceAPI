@@ -2,7 +2,6 @@ import face_recognition
 import mysql.connector
 import argparse
 import numpy as np
-import json
 
 def face_distance(face_encodings, face_to_compare):
     if len(face_encodings) == 0:
@@ -17,10 +16,21 @@ def get_match(match):
         if match[i] == True:
             indexs.append(i)
     return indexs
-def get_data(records,indexs):
+def get_data(records,index):
+    mydb = mysql.connector.connect(
+        host = 'localhost',
+        user = 'root',
+        password = '',
+        database = 'facedb'
+    )
+    mycursor = mydb.cursor()
+    sql = 'select * from faces where merged_id = ' + str(index[0])
+    mycursor.execute(sql)
+    records = mycursor.fetchall()
+    print(len(records))
     data = []
-    for index in indexs:
-        tmp = [records[index][2],records[index][3],records[index][4]]
+    for record in records:
+        tmp = [record[2],record[3],record[4]]
         data.append(tmp)
     return data
 def find_database(face_encoding):
@@ -31,7 +41,7 @@ def find_database(face_encoding):
         database = 'facedb'
     )
     mycursor = mydb.cursor()
-    sql = "select * from faces"
+    sql = "select * from faces_merged"
     mycursor.execute(sql)
     records = mycursor.fetchall()
     known_face_encodings = []
@@ -41,9 +51,9 @@ def find_database(face_encoding):
             tmp[i] = float(tmp[i])
         arr = np.array(tmp)
         known_face_encodings.append(arr) #feature
-    match = face_recognition.compare_faces(known_face_encodings,face_encoding,tolerance = 0.45)
-    indexs = get_match(match)
-    data = get_data(records,indexs)
+    match = face_recognition.compare_faces(known_face_encodings,face_encoding,tolerance = 0.4)
+    index = get_match(match)
+    data = get_data(records,index)
     #data = [records[match][2],records[match][3],records[match][4]]
     return data
 
@@ -59,5 +69,5 @@ if __name__ == '__main__':
     opt = parser.parse_args()
     face_encoding = encode(opt)
     data = find_database(face_encoding)
-    print(json.dumps(data))
+    print(data)
     #return data

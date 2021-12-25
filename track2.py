@@ -33,6 +33,75 @@ import face_recognition
 import mysql.connector
 import numpy as np
 
+def face_distance(face_encodings, face_to_compare):
+    if len(face_encodings) == 0:
+        return np.empty((0))
+    return np.linalg.norm(face_encodings - face_to_compare, axis=1)
+def compare_faces(known_face_encodings, face_encoding_to_check, tolerance):
+    a = face_distance(known_face_encodings, face_encoding_to_check)
+    if np.amin(a) <= tolerance: # if same face in faces_merge database
+        return np.argmin(a) #get the min index
+    return False # didn't find
+        
+def get_data(records,indexs):
+    data = []
+    for index in indexs:
+        tmp = [records[index][2],records[index][3],records[index][4]]
+        data.append(tmp)
+    return data
+def merge_data(mydb,mycursor,records,index,face_encoding):
+    origin_feature = records[index][1].split(',')
+    count = records[index][2]
+    for i in range(len(origin_feature)):
+        origin_feature[i] = float(origin_feature[i])
+        arr = np.array(origin_feature)
+    merge_feature = (arr * count + face_encoding) / (count + 1)
+    feature = face_encoding_to_feature(merge_feature)
+    sql = "update faces_merged set features = \'" + feature + "\' where id = " + str(index)
+    mycursor.execute(sql)
+    sql = "update faces_merged set count = \'" + str(count + 1) + "\' where id = " + str(index)
+    mycursor.execute(sql)
+    mydb.commit()
+def face_encoding_to_feature(face_encoding):
+    feature = np.array2string(face_encoding, formatter={'float_kind':lambda x: "%.18f" % x}).replace('\n','').replace(' ',',')
+    feature = feature[1:]
+    feature = feature[:-1]
+    return feature
+def store_to_merge_database(mydb,mycursor,face_encoding):
+    mycursor.execute('SELECT MAX(id) FROM faces_merged;')
+    max = mycursor.fetchall()
+    max = max[0][0]
+    if max == None: #if no data
+        max = -1
+    sql = "insert into faces_merged (id, features, count) values (%s, %s, %s)"
+    feature = face_encoding_to_feature(face_encoding)
+    index = max + 1
+    count = 1
+    val = (index,feature,count,)
+    mycursor.execute(sql, val)
+    print(mycursor.rowcount, "record inserted.")
+    mydb.commit()
+    return index
+def check_merge(mydb,mycursor,face_encoding):
+    sql = "select * from faces_merged"
+    mycursor.execute(sql)
+    records = mycursor.fetchall()
+    mydb.commit()
+    known_face_encodings = []
+    for row in records:
+        tmp = row[1].split(',')
+        for i in range(len(tmp)):
+            tmp[i] = float(tmp[i])
+        arr = np.array(tmp)
+        known_face_encodings.append(arr) #feature
+    if known_face_encodings:
+        index = compare_faces(known_face_encodings,face_encoding,tolerance = 0.4) # the min distance in faces_merged
+        if index != False: # have same face in database
+            merge_data(mydb,mycursor,records,index,face_encoding)
+            return index
+    index = store_to_merge_database(mydb,mycursor,face_encoding)
+    return index
+
 def store_to_database(average_encoded_dict,id_time,source):
     mydb = mysql.connector.connect(
         host = 'localhost',
@@ -45,9 +114,11 @@ def store_to_database(average_encoded_dict,id_time,source):
     mycursor.execute('SELECT MAX(id) FROM faces;')
     max = mycursor.fetchall()
     max = max[0][0] #get the max id
+    if max == None: #if no data
+        max = 0
 
     #新增資料
-    sql = "insert into faces (id, features, start_time, end_time, device) values (%s, %s, %s, %s, %s)"
+    sql = "insert into faces (id, features, start_time, end_time, device, merged_id) values (%s, %s, %s, %s, %s, %s)"
     vals = []
 
 
@@ -55,7 +126,8 @@ def store_to_database(average_encoded_dict,id_time,source):
         feature = np.array2string(value, formatter={'float_kind':lambda x: "%.18f" % x}).replace('\n','').replace(' ',',')
         feature = feature[1:]
         feature = feature[:-1]
-        val = (max + int(key),feature,id_time[key][0],id_time[key][1],source)
+        check = check_merge(mydb,mycursor,value)
+        val = (max + int(key),feature,id_time[key][0],id_time[key][1],source,int(check))
         vals.append(val)
     mycursor.executemany(sql, vals)
     print(mycursor.rowcount, "record inserted.")
@@ -138,6 +210,8 @@ def detect(opt):
     id_time = {}
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         seconds = frame_idx / vid_cap.get(cv2.CAP_PROP_FPS)
+        # if frame_idx > 262:
+        #     break
         t1 = time_sync()
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32

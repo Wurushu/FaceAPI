@@ -19,7 +19,7 @@ if (!empty($_FILES['face'])) {
     exec($pythonCmd, $output);
 
     if (count($output) > 0) {
-        $results = json_decode($output[0]);
+        $results = json_decode($output[1]);
 
         foreach ($results as $result) {
             if (array_key_exists($result[2], $results_convert)) {
@@ -83,11 +83,16 @@ if (!empty($_FILES['face'])) {
             border-radius: 5px;
             transform: translateY(-50%);
             background-color: #fff;
+            max-width: 200px;
+        }
+
+        .preview-image img{ 
+            width: 100%;
         }
     </style>
 </head>
 <body>
-<video class="bg-video" playsinline="playsinline" autoplay="autoplay" muted="muted" loop="loop">
+<video class="bg-video" playsinline autoplay muted loop>
     <source src="assets/video/example.mp4" type="video/mp4"/>
 </video>
 <?php

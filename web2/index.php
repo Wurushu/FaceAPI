@@ -15,11 +15,11 @@ if (!empty($_FILES['face'])) {
         echo '<script>alert("錯誤：' . $fileFace['error'] . '");</script>';
     }
 
-    $pythonCmd = "conda run -n face-env python ../input.py --image " . $imageFolder . $fileFace['name'];
+    $pythonCmd = "conda run -n face-env python ../no_merge.py --image " . $imageFolder . $fileFace['name'];
     exec($pythonCmd, $output);
 
     if (count($output) > 0) {
-        $results = json_decode($output[1]);
+        $results = json_decode($output[0]);
 
         foreach ($results as $result) {
             if (array_key_exists($result[2], $results_convert)) {

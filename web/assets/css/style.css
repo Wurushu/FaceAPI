@@ -1,0 +1,10 @@
+.block {
+    margin: 0 auto;
+    width: 70%;
+    height: 300px;
+    border: 1px #00f solid;
+}
+.search-loading > div {
+    width: 4rem;
+    height: 4rem;
+}

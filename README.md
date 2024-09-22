@@ -4,9 +4,7 @@
 
 影片人物檢索系統，此系統提供一個網頁介面，可以用來檢視監視錄影檔案、搜尋某個人在監視器中出現的時間點，並可以觀看那些片段。
 
-> https://1drv.ms/u/s!AgPlzKHSGjT8h_U4_n1njJlo6CnuSQ?e=9TejUV
->
-> 範例影片和 weight 檔
+> [簡介](https://1drv.ms/b/s!AgPlzKHSGjT8h_lWpVUFZqHprA0MeQ?e=g9hUV1)
 
 ## 安裝 Web
 
